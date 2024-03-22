@@ -57,35 +57,36 @@ while True:
 
     # QRコードの読み取り
     decoded_objects = decode(frame)
-
-
+    
     # QRコードが読み取れた場合
     if decoded_objects:
-        # QRコードのデータが一致するか確認
-        data = decoded_objects[0].data.decode()
-        if data.isdigit():
-            index = int(data) - 1
-            if 0 <= index < len(names):
-                name = names[index]
-                # 最後に認証されてから1分以上経過しているか確認
-                if time.time() - last_auth[name]['time'] > 60:
-                    # ステータスに応じてメッセージを変更
-                    if last_auth[name]['status'] == 'Exited':
-                        message = f'{name}が入室しました！'
-                        last_auth[name]['status'] = 'Entered'
-                    else:
-                        message = f'{name}が退出しました！'
-                        last_auth[name]['status'] = 'Exited'
-                    # Slackに通知を送る
-                    requests.post(webhook_url, json={'text': message})
-                    # 最後に認証された時間を更新
-                    last_auth[name]['time'] = time.time()
-                    print(message)  # 認証されたことをコンソールに表示
-
-
-                    # 音声ファイルを再生
-                    pygame.mixer.music.load('zun.wav')
-                    pygame.mixer.music.play()
+        for obj in decoded_objects:
+            # QRコードだけを解析する
+            if obj.type == 'QRCODE':
+                # QRコードのデータが一致するか確認
+                data = obj.data.decode()
+                if data.isdigit():
+                    index = int(data) - 1
+                    if 0 <= index < len(names):
+                        name = names[index]
+                        # 最後に認証されてから1分以上経過しているか確認
+                        if time.time() - last_auth[name]['time'] > 60:
+                            # ステータスに応じてメッセージを変更
+                            if last_auth[name]['status'] == 'Exited':
+                                message = f'{name}が入室しました！'
+                                last_auth[name]['status'] = 'Entered'
+                            else:
+                                message = f'{name}が退出しました！'
+                                last_auth[name]['status'] = 'Exited'
+                            # Slackに通知を送る
+                            requests.post(webhook_url, json={'text': message})
+                            # 最後に認証された時間を更新
+                            last_auth[name]['time'] = time.time()
+                            print(message)  # 認証されたことをコンソールに表示
+    
+                            # 音声ファイルを再生
+                            pygame.mixer.music.load('zun.wav')
+                            pygame.mixer.music.play()
 
 
     # 画像を表示
